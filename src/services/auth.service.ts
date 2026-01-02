@@ -2,7 +2,7 @@ import { Injectable, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { User } from '../models';
+import { User, UserRole } from '../models';
 
 @Injectable({
   providedIn: 'root',
@@ -21,20 +21,20 @@ export class AuthService {
     }
   }
 
-  async register(name: string, phone: string, email: string, password: string): Promise<{ success: boolean, message: string }> {
+  async register(name: string, phone: string, email: string, password: string, role: UserRole): Promise<{ success: boolean, message: string }> {
     try {
-      const response = await firstValueFrom(
-        this.http.post<{ success: boolean, message: string }>(`${this.apiUrl}/register`, { name, phone, email, password })
+      const response: { success: boolean, message: string } = await firstValueFrom(
+        this.http.post<{ success: boolean, message: string }>(`${this.apiUrl}/register`, { name, phone, email, password, role })
       );
       return response;
-    } catch (error: any) {
-      return { success: false, message: error.error?.message || 'Error en el registro.' };
+    } catch (error: unknown) {
+      return { success: false, message: (error as any)?.error?.message || 'Error en el registro.' };
     }
   }
 
   async login(contact: string, password: string): Promise<{ success: boolean, message: string, user?: User }> {
     try {
-      const response = await firstValueFrom(
+      const response: { success: boolean, message: string, user: User } = await firstValueFrom(
         this.http.post<{ success: boolean, message: string, user: User }>(`${this.apiUrl}/login`, { contact, password })
       );
       if (response.success && response.user) {
@@ -42,8 +42,8 @@ export class AuthService {
         localStorage.setItem('currentUser', JSON.stringify(response.user));
       }
       return response;
-    } catch (error: any) {
-      return { success: false, message: error.error?.message || 'Credenciales inválidas.' };
+    } catch (error: unknown) {
+      return { success: false, message: (error as any)?.error?.message || 'Credenciales inválidas.' };
     }
   }
 
@@ -58,15 +58,29 @@ export class AuthService {
     if (!user) return;
 
     try {
-      const response = await firstValueFrom(
+      const response: { success: boolean, user: User } = await firstValueFrom(
         this.http.post<{ success: boolean, user: User }>(`${this.apiUrl}/users/${user.id}/assign-tienda`, { tiendaId })
       );
       if (response.success && response.user) {
         this.currentUser.set(response.user);
         localStorage.setItem('currentUser', JSON.stringify(response.user));
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to assign tienda', error);
+    }
+  }
+
+  async refreshCurrentUser(): Promise<void> {
+    const user = this.currentUser();
+    if (!user) return;
+    try {
+      const freshUser = await firstValueFrom(this.http.get<User>(`${this.apiUrl}/users/${user.id}`));
+      this.currentUser.set(freshUser);
+      localStorage.setItem('currentUser', JSON.stringify(freshUser));
+    } catch (error) {
+      console.error('Failed to refresh user', error);
+      // Optional: handle error, maybe logout if user data is critical and fails to load
+      this.logout();
     }
   }
 

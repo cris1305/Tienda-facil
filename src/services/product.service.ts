@@ -40,13 +40,14 @@ export class ProductService {
 
   async updateProduct(updatedProduct: Product) {
     try {
-      const returnedProduct = await firstValueFrom(
+      // Fix: Explicitly type `returnedProduct` to fix type inference issue from `firstValueFrom`.
+      const returnedProduct: Product = await firstValueFrom(
         this.http.put<Product>(`${this.apiUrl}/products/${updatedProduct.id}`, updatedProduct)
       );
       this.products.update(products => 
         products.map(p => p.id === returnedProduct.id ? returnedProduct : p)
       );
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Failed to update product:", error);
     }
   }

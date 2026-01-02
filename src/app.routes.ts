@@ -5,6 +5,7 @@ import { AuthComponent } from './components/auth/auth.component';
 import { AdminComponent } from './components/admin/admin.component';
 import { authGuard } from './guards/auth.guard';
 import { JoinStoreComponent } from './components/join-store/join-store.component';
+import { CreateStoreComponent } from './components/create-store/create-store.component';
 
 export const APP_ROUTES: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -22,6 +23,11 @@ export const APP_ROUTES: Routes = [
   {
     path: 'join-store',
     component: JoinStoreComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'create-store',
+    component: CreateStoreComponent,
     canActivate: [authGuard]
   },
   { path: '**', redirectTo: 'home' }

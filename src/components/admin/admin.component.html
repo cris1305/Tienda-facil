@@ -1,0 +1,258 @@
+<div class="container mx-auto p-4 sm:p-6 lg:p-8">
+  <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-6">Panel de Administración</h1>
+
+  <!-- Tabs Navigation -->
+  <div class="mb-8 border-b border-gray-200">
+    <nav class="-mb-px flex space-x-4 sm:space-x-8 overflow-x-auto pb-2 hide-scrollbar" aria-label="Tabs">
+      <button (click)="changeView('products')"
+              [class.border-green-500]="currentView() === 'products'"
+              [class.text-green-600]="currentView() === 'products'"
+              [class.border-transparent]="currentView() !== 'products'"
+              [class.text-gray-500]="currentView() !== 'products'"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:border-gray-300 hover:text-gray-700">
+        Gestión de Productos
+      </button>
+      <button (click)="changeView('users')"
+              [class.border-green-500]="currentView() === 'users'"
+              [class.text-green-600]="currentView() === 'users'"
+              [class.border-transparent]="currentView() !== 'users'"
+              [class.text-gray-500]="currentView() !== 'users'"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:border-gray-300 hover:text-gray-700">
+        Lista de Usuarios
+      </button>
+      <button (click)="changeView('settings')"
+              [class.border-green-500]="currentView() === 'settings'"
+              [class.text-green-600]="currentView() === 'settings'"
+              [class.border-transparent]="currentView() !== 'settings'"
+              [class.text-gray-500]="currentView() !== 'settings'"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:border-gray-300 hover:text-gray-700">
+        Configuración
+      </button>
+    </nav>
+  </div>
+
+  <!-- Product Management View -->
+  @if (currentView() === 'products') {
+    <div class="bg-white p-6 rounded-xl shadow-lg">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h2 class="text-2xl font-bold">Productos</h2>
+        <button (click)="showAddForm()" class="bg-green-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-700 transition flex items-center gap-2 w-full sm:w-auto">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" /></svg>
+          Añadir Producto
+        </button>
+      </div>
+
+      <!-- Product Form Modal -->
+      @if(isFormVisible()) {
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 relative">
+            <h3 class="text-2xl font-bold mb-6">{{ editingProduct() ? 'Editar Producto' : 'Añadir Nuevo Producto' }}</h3>
+            <form #productForm="ngForm" (ngSubmit)="saveProduct(productForm)" class="space-y-4">
+              <div>
+                <label for="name" class="block text-sm font-medium text-gray-700">Nombre del Producto</label>
+                <input type="text" name="name" id="name" required [ngModel]="editingProduct()?.name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
+              </div>
+              <div>
+                <label for="image" class="block text-sm font-medium text-gray-700">URL de la Imagen</label>
+                <input type="text" name="image" id="image" required [ngModel]="editingProduct()?.image" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="unit" class="block text-sm font-medium text-gray-700">Unidad de Medida</label>
+                  <select name="unit" id="unit" required [ngModel]="selectedUnit()" (ngModelChange)="selectedUnit.set($event)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
+                    <option value="unidad">Unidad</option>
+                    <option value="libra">Libra</option>
+                    <option value="litro">Litro</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="price" class="block text-sm font-medium text-gray-700">Precio (C$)</label>
+                  <input type="number" name="price" id="price" required [ngModel]="editingProduct()?.price" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
+                </div>
+              </div>
+
+              @if (selectedUnit() === 'unidad') {
+                <div>
+                  <label for="priceDozen" class="block text-sm font-medium text-gray-700">Precio por Docena (C$) (Opcional)</label>
+                  <input type="number" name="priceDozen" id="priceDozen" [ngModel]="editingProduct()?.priceDozen" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
+                </div>
+              }
+
+              <div class="pt-4 flex justify-end gap-3">
+                <button type="button" (click)="hideForm()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md font-semibold hover:bg-gray-300 transition">Cancelar</button>
+                <button type="submit" [disabled]="productForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-700 disabled:bg-green-400 transition">Guardar Producto</button>
+              </div>
+            </form>
+            <button (click)="hideForm()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Products Table -->
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+              <th scope="col" class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio Base</th>
+              <th scope="col" class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio por Docena</th>
+              <th scope="col" class="relative px-3 sm:px-6 py-3"><span class="sr-only">Editar</span></th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            @for (product of allProducts(); track product.id) {
+              <tr>
+                <td class="px-3 sm:px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 h-10 w-10">
+                      <img class="h-10 w-10 rounded-full object-cover" [src]="product.image" alt="">
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">{{ product.name }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">C$ {{ product.price.toLocaleString() }} / {{ product.unit }}</td>
+                <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ product.priceDozen ? 'C$ ' + product.priceDozen.toLocaleString() : 'N/A' }}</td>
+                <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <button (click)="showEditForm(product)" class="text-green-600 hover:text-green-900">Editar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- User List View -->
+  @if (currentView() === 'users') {
+    <div class="bg-white p-6 rounded-xl shadow-lg">
+      <h2 class="text-2xl font-bold mb-6">Usuarios de tu Tienda</h2>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+              <th scope="col" class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
+              <th scope="col" class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de Registro</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            @for (user of allUsers(); track user.id) {
+              <tr>
+                <td class="px-3 sm:px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">{{ user.name }}</div>
+                  <div class="text-sm text-gray-500">{{ user.email }}</div>
+                </td>
+                <td class="px-3 sm:px-6 py-4 whitespace-nowrap">
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                        [class.bg-green-100]="user.role === 'admin'" [class.text-green-800]="user.role === 'admin'"
+                        [class.bg-blue-100]="user.role === 'vendedor'" [class.text-blue-800]="user.role === 'vendedor'">
+                    {{ user.role }}
+                  </span>
+                </td>
+                <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.registrationDate | date:'medium' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- Store Settings View -->
+  @if (currentView() === 'settings') {
+    <div class="bg-white p-6 rounded-xl shadow-lg">
+      <h2 class="text-2xl font-bold mb-6">Configuración de Tienda</h2>
+      @if(tienda(); as currentTienda) {
+        
+        <!-- Store Details Form -->
+        <div class="mb-10 border-b border-gray-200 pb-10">
+          <h3 class="text-xl font-semibold mb-4 text-gray-800">Datos de la Tienda</h3>
+          <form #storeForm="ngForm" (ngSubmit)="updateStoreDetails(storeForm)" class="max-w-md space-y-4">
+            <div>
+                <label for="tiendaName" class="block text-sm font-medium text-gray-700">Nombre de la Tienda</label>
+                <input type="text" name="tiendaName" id="tiendaName" required [ngModel]="currentTienda.name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="tiendaEmail" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                <input type="email" name="tiendaEmail" id="tiendaEmail" [ngModel]="currentTienda.email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="tiendaPhone" class="block text-sm font-medium text-gray-700">Teléfono</label>
+                <input type="tel" name="tiendaPhone" id="tiendaPhone" [ngModel]="currentTienda.phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="tiendaImage" class="block text-sm font-medium text-gray-700">URL de Imagen/Logo</label>
+                <input type="url" name="tiendaImage" id="tiendaImage" [ngModel]="currentTienda.image" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
+            </div>
+            <div>
+                <button type="submit" [disabled]="storeForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-700 disabled:bg-green-400 transition">
+                  Guardar Cambios
+                </button>
+            </div>
+          </form>
+          @if (storeUpdateError()) {
+              <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg" role="alert">
+                  {{ storeUpdateError() }}
+              </div>
+          }
+          @if (storeUpdateSuccess()) {
+              <div class="mt-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg" role="alert">
+                  {{ storeUpdateSuccess() }}
+              </div>
+          }
+        </div>
+
+        <!-- Vendedor PIN Form -->
+        <div>
+          <h3 class="text-xl font-semibold mb-4 text-gray-800">PIN de Vendedor</h3>
+          <form #pinForm="ngForm" (ngSubmit)="updatePin(pinForm)" class="max-w-md space-y-4">
+              <div>
+                <label for="vendedorPin" class="block text-sm font-medium text-gray-700">PIN de Vendedor (4 dígitos)</label>
+                <p class="text-xs text-gray-500 mb-2">Este PIN será utilizado por los vendedores para identificarse.</p>
+                <input type="text" 
+                       name="vendedorPin" 
+                       id="vendedorPin" 
+                       required 
+                       pattern="\d{4}"
+                       maxlength="4"
+                       [ngModel]="currentTienda.vendedorPin"
+                       #vendedorPin="ngModel"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                       [class.border-red-500]="vendedorPin.invalid && (vendedorPin.dirty || vendedorPin.touched)">
+                @if (vendedorPin.invalid && (vendedorPin.dirty || vendedorPin.touched)) {
+                  <div class="text-red-600 text-sm mt-1">
+                    @if (vendedorPin.errors?.['required']) { <p>El PIN es requerido.</p> }
+                    @if (vendedorPin.errors?.['pattern']) { <p>El PIN debe contener exactamente 4 dígitos.</p> }
+                  </div>
+                }
+              </div>
+              <div>
+                <button type="submit" [disabled]="pinForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-700 disabled:bg-green-400 transition">
+                  Actualizar PIN
+                </button>
+              </div>
+          </form>
+
+          @if (pinUpdateError()) {
+              <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg" role="alert">
+                  {{ pinUpdateError() }}
+              </div>
+          }
+          @if (pinUpdateSuccess()) {
+              <div class="mt-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg" role="alert">
+                  {{ pinUpdateSuccess() }}
+              </div>
+          }
+        </div>
+
+      } @else {
+        <p class="text-gray-500">No se pudo cargar la información de la tienda.</p>
+      }
+    </div>
+  }
+</div>

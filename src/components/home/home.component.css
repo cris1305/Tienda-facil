@@ -1,0 +1,6 @@
+
+/* This ensures the video element correctly mirrors for a selfie-like view if using front camera */
+/* For 'environment' (rear camera), this might not be desired, but often looks more natural to user. */
+video {
+    transform: scaleX(-1);
+}

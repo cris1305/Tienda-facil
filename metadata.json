@@ -1,0 +1,7 @@
+{
+  "name": "Tienda Fácil",
+  "description": "Una elegante aplicación de comercio electrónico para encontrar y gestionar productos fácilmente. Incluye búsqueda por texto y una innovadora búsqueda por cámara impulsada por Gemini para identificar artículos.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

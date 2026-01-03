@@ -1,3 +1,4 @@
+
 import { Injectable, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -32,6 +33,16 @@ export class AuthService {
     }
   }
 
+  async verifyEmail(email: string, code: string): Promise<{ success: boolean, message: string }> {
+    try {
+      return await firstValueFrom(
+        this.http.post<{ success: boolean, message: string }>(`${this.apiUrl}/verify-email`, { email, code })
+      );
+    } catch (error: unknown) {
+      return { success: false, message: (error as any)?.error?.message || 'Error en la verificación.' };
+    }
+  }
+
   async login(contact: string, password: string): Promise<{ success: boolean, message: string, user?: User }> {
     try {
       const response: { success: boolean, message: string, user: User } = await firstValueFrom(
@@ -44,6 +55,21 @@ export class AuthService {
       return response;
     } catch (error: unknown) {
       return { success: false, message: (error as any)?.error?.message || 'Credenciales inválidas.' };
+    }
+  }
+
+  async loginWithGoogle(credential: string): Promise<{ success: boolean, message: string, user?: User }> {
+    try {
+      const response: { success: boolean, message: string, user: User } = await firstValueFrom(
+        this.http.post<{ success: boolean, message: string, user: User }>(`${this.apiUrl}/google-login`, { credential })
+      );
+      if (response.success && response.user) {
+        this.currentUser.set(response.user);
+        localStorage.setItem('currentUser', JSON.stringify(response.user));
+      }
+      return response;
+    } catch (error: unknown) {
+      return { success: false, message: (error as any)?.error?.message || 'Error en el inicio de sesión con Google.' };
     }
   }
 

@@ -1,3 +1,4 @@
+
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -23,13 +24,14 @@ export class CreateStoreComponent {
   currentUser = this.authService.currentUser;
 
   async createStore(form: NgForm) {
-    if (form.invalid || this.isLoading()) return;
+    const user = this.currentUser();
+    if (form.invalid || this.isLoading() || !user) return;
 
     this.isLoading.set(true);
     this.error.set(null);
     
     const tiendaName = form.value.tiendaName;
-    const newTienda = await this.tiendaService.createTienda(tiendaName);
+    const newTienda = await this.tiendaService.createTienda(tiendaName, user.id);
 
     if (newTienda) {
       // The backend has created the store and assigned it to the user.

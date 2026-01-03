@@ -1,3 +1,4 @@
+
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -27,12 +28,12 @@ export class TiendaService {
     }
   }
 
-  async createTienda(tiendaName: string): Promise<Tienda | null> {
+  async createTienda(tiendaName: string, ownerId: number): Promise<Tienda | null> {
     try {
       // The backend will associate the logged-in user (admin) as the owner
       // FIX: Explicitly type `newTienda` to resolve a type inference issue with `firstValueFrom`.
       const newTienda: Tienda = await firstValueFrom(
-        this.http.post<Tienda>(`${this.apiUrl}/tiendas`, { name: tiendaName })
+        this.http.post<Tienda>(`${this.apiUrl}/tiendas`, { name: tiendaName, ownerId: ownerId })
       );
       return newTienda;
     } catch (error) {

@@ -1,12 +1,10 @@
 
-import { ChangeDetectionStrategy, Component, inject, signal, AfterViewInit, NgZone } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { UserRole } from '../../models';
-
-declare const google: any; // Declare google global variable
 
 @Component({
   selector: 'app-auth',
@@ -15,11 +13,10 @@ declare const google: any; // Declare google global variable
   templateUrl: './auth.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AuthComponent implements AfterViewInit {
+export class AuthComponent {
   authService = inject(AuthService);
   router = inject(Router) as Router;
   route = inject(ActivatedRoute) as ActivatedRoute;
-  ngZone = inject(NgZone);
 
   isLoginView = signal(true);
   isVerificationStep = signal(false); // New state for verification view
@@ -37,31 +34,6 @@ export class AuthComponent implements AfterViewInit {
         } else {
             this.isLoginView.set(true);
         }
-    });
-  }
-
-  ngAfterViewInit(): void {
-    // It's possible this component is destroyed and re-initialized.
-    // Ensure we don't try to initialize multiple times if the script is already loaded.
-    if (typeof google !== 'undefined') {
-      google.accounts.id.initialize({
-        // TODO: Replace with your own Google Client ID
-        client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
-        callback: this.handleGoogleSignIn
-      });
-      google.accounts.id.renderButton(
-        document.getElementById('google-btn'),
-        { theme: 'outline', size: 'large', width: '350', text: 'continue_with', shape: 'pill' } 
-      );
-    }
-  }
-
-  handleGoogleSignIn = (response: any) => {
-    // The callback from Google happens outside of Angular's zone.
-    // We need to run the login logic inside the zone to trigger change detection.
-    this.ngZone.run(async () => {
-      const result = await this.authService.loginWithGoogle(response.credential);
-      this.handleAuthResponse(result);
     });
   }
 
